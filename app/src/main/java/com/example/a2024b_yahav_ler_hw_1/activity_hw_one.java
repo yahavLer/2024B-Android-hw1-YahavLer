@@ -1,0 +1,191 @@
+package com.example.a2024b_yahav_ler_hw_1;
+
+import android.content.Context;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
+import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.appcompat.widget.AppCompatImageView;
+
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import java.util.Random;
+import java.util.Timer;
+
+//import androidx.activity.EdgeToEdge;
+//import androidx.core.graphics.Insets;
+//import androidx.core.view.ViewCompat;
+//import androidx.core.view.WindowInsetsCompat;
+
+public class activity_hw_one extends AppCompatActivity {
+    private Context context;
+
+    private AppCompatImageButton zoo_left;
+    private AppCompatImageButton zoo_right;
+    private ImageView[][] zoo_animals;
+    private ImageView zoo_farmer;
+    private ImageView[] zoo_live;
+    private int farmerPosCol=1;
+    private int farmerPosRow=5;
+
+    private int count = 0;
+    private final int DELAY = 1000;
+
+    private Timer timer;
+    private int numLives=3;
+    private final Handler handler = new Handler();
+
+    private Runnable runnable;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_hw_one);
+        findViews();
+        zoo_right.setOnClickListener(v -> moveFarmerRight());
+        zoo_left.setOnClickListener(v -> moveFarmerLeft());
+        runnable = new Runnable() {
+            public void run() {
+                checkLives();
+                updateLive();
+                moveHorseFirstLine();
+                moveHorse();
+                checkPlace();
+                handler.postDelayed(runnable, DELAY);
+            }
+        };
+        start();
+    }
+
+    private void checkLives() {
+        if (numLives==0){
+            lose();
+        }
+    }
+    private void lose() {
+        Toast.makeText(this, "You lose", Toast.LENGTH_SHORT).show();
+        openAdvertisementDialog();
+    }
+    private void openAdvertisementDialog() {
+        new MaterialAlertDialogBuilder(this).setTitle("No lives")
+            .setMessage("Do you want to play again?")
+            .setPositiveButton("Yes", (dialog, which) -> continueGame())
+            .setNegativeButton("No", (dialog, which) -> gameDone())
+            .show();
+    }
+
+    private void continueGame() {
+        numLives=3;
+        updateLive();
+    }
+
+    private void gameDone() {
+        stop();
+        Log Log = null;
+        Log.d("pttt", "Game Done");
+        zoo_left.setEnabled(false);
+        zoo_right.setEnabled(false);
+        finish();
+    }
+    private void checkPlace() {
+        if (zoo_animals[farmerPosRow-1][farmerPosCol].getVisibility() == View.VISIBLE) {
+            numLives--;
+            vibrate();
+        }
+    }
+
+    private void vibrate(){
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(500);
+            }
+        }
+    }
+
+    private void moveHorseFirstLine(){
+        Random random = new Random();
+        int num= random.nextInt(3) ;
+        for (int j = 0; j < zoo_animals[0].length; j++) {
+            zoo_animals[0][num].setVisibility(View.VISIBLE);
+        }
+    }
+    private void moveHorse() {
+        for (int i = zoo_animals.length - 3; i >= 0; i--) { // Start from the second last row to the top
+            for (int j = 0; j < zoo_animals[i].length; j++) {
+                if (i==zoo_animals.length-3){
+                    zoo_animals[i+1][j].setVisibility(View.INVISIBLE);
+                }
+                if (zoo_animals[i][j].getVisibility() == View.VISIBLE) {
+                    zoo_animals[i][j].setVisibility(View.INVISIBLE);
+                    zoo_animals[i + 1][j].setVisibility(View.VISIBLE);
+                }
+            }
+        }
+    }
+
+
+    private void stop() {
+        handler.removeCallbacks(runnable);
+    }
+
+    private void start() {
+        handler.postDelayed(runnable, DELAY);
+
+    }
+    private void updateLive() {
+        int SZ = zoo_live.length;
+
+        for (int i = 0; i < SZ; i++) {
+            zoo_live[i].setVisibility(View.VISIBLE);
+        }
+
+        for (int i = 0; i < SZ - numLives; i++) {
+            zoo_live[SZ - i - 1].setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void moveFarmerRight() {
+        if (farmerPosCol<2) {
+            zoo_animals[farmerPosRow][farmerPosCol].setVisibility(View.INVISIBLE);
+            farmerPosCol += 1;
+            zoo_animals[farmerPosRow][farmerPosCol].setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void moveFarmerLeft() {
+        if (farmerPosCol>0) {
+            zoo_animals[farmerPosRow][farmerPosCol].setVisibility(View.INVISIBLE);
+            farmerPosCol -= 1;
+            zoo_animals[farmerPosRow][farmerPosCol].setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void findViews() {
+        zoo_left = findViewById(R.id.zoo_left);
+        zoo_right = findViewById(R.id.zoo_right);
+        zoo_animals = new AppCompatImageView[][]{
+                {findViewById(R.id.animal1), findViewById(R.id.animal2), findViewById(R.id.animal3)},
+                {findViewById(R.id.animal4), findViewById(R.id.animal5), findViewById(R.id.animal6)},
+                {findViewById(R.id.animal7), findViewById(R.id.animal8), findViewById(R.id.animal9)},
+                {findViewById(R.id.animal10), findViewById(R.id.animal11), findViewById(R.id.animal12)},
+                {findViewById(R.id.animal13), findViewById(R.id.animal14), findViewById(R.id.animal15)},
+                {findViewById(R.id.farmer0), findViewById(R.id.farmer1), findViewById(R.id.farmer2)}
+        };
+        zoo_live = new AppCompatImageView[] {
+                findViewById(R.id.live1),
+                findViewById(R.id.live2),
+                findViewById(R.id.live3),
+        };
+    }
+}
