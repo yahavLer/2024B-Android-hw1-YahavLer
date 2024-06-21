@@ -1,5 +1,7 @@
 package com.example.a2024b_yahav_ler_hw_1;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,6 +37,7 @@ public class activity_hw_one extends AppCompatActivity {
     private ImageView[] zoo_live;
     private int farmerPosCol=1;
     private int farmerPosRow=5;
+    private boolean isGameOver = false;
 
     private int count = 0;
     private final int DELAY = 1000;
@@ -55,10 +58,11 @@ public class activity_hw_one extends AppCompatActivity {
         runnable = new Runnable() {
             public void run() {
                 checkLives();
-                updateLive();
                 moveHorseFirstLine();
                 moveHorse();
-                checkPlace();
+                if (numLives>0){
+                    checkPlace();
+                }
                 handler.postDelayed(runnable, DELAY);
             }
         };
@@ -66,17 +70,19 @@ public class activity_hw_one extends AppCompatActivity {
     }
 
     private void checkLives() {
-        if (numLives==0){
+        if (numLives == 0 && !isGameOver) {
+            isGameOver = true;
             lose();
         }
     }
     private void lose() {
-        Toast.makeText(this, "You lose", Toast.LENGTH_SHORT).show();
+        zoo_left.setEnabled(false);
+        zoo_right.setEnabled(false);
         openAdvertisementDialog();
     }
     private void openAdvertisementDialog() {
         new MaterialAlertDialogBuilder(this).setTitle("No lives")
-            .setMessage("Do you want to play again?")
+            .setMessage("You lose, Do you want to play again?")
             .setPositiveButton("Yes", (dialog, which) -> continueGame())
             .setNegativeButton("No", (dialog, which) -> gameDone())
             .show();
@@ -84,12 +90,15 @@ public class activity_hw_one extends AppCompatActivity {
 
     private void continueGame() {
         numLives=3;
-        updateLive();
+        isGameOver=false;
+        zoo_left.setEnabled(true);
+        zoo_right.setEnabled(true);
+        start();
     }
 
     private void gameDone() {
         stop();
-        Log Log = null;
+        Toast.makeText(this, "You lose", Toast.LENGTH_SHORT).show();
         Log.d("pttt", "Game Done");
         zoo_left.setEnabled(false);
         zoo_right.setEnabled(false);
@@ -98,6 +107,8 @@ public class activity_hw_one extends AppCompatActivity {
     private void checkPlace() {
         if (zoo_animals[farmerPosRow-1][farmerPosCol].getVisibility() == View.VISIBLE) {
             numLives--;
+            Log.d(TAG, "numLives: "+ numLives);
+            updateLive();
             vibrate();
         }
     }
@@ -135,6 +146,8 @@ public class activity_hw_one extends AppCompatActivity {
     }
 
 
+
+
     private void stop() {
         handler.removeCallbacks(runnable);
     }
@@ -144,14 +157,15 @@ public class activity_hw_one extends AppCompatActivity {
 
     }
     private void updateLive() {
-        int SZ = zoo_live.length;
-
-        for (int i = 0; i < SZ; i++) {
+        int amountLive=zoo_live.length;
+        for (int i = 0; i < amountLive; i++) {
             zoo_live[i].setVisibility(View.VISIBLE);
         }
-
-        for (int i = 0; i < SZ - numLives; i++) {
-            zoo_live[SZ - i - 1].setVisibility(View.INVISIBLE);
+        if (numLives<3){
+            int removeLive= zoo_live.length - numLives;
+            for (int i = 0; i <removeLive ; i++) {
+                zoo_live[(amountLive - i)-1].setVisibility(View.INVISIBLE);
+            }
         }
     }
 
