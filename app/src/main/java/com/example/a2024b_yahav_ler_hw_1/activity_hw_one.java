@@ -57,12 +57,10 @@ public class activity_hw_one extends AppCompatActivity {
         zoo_left.setOnClickListener(v -> moveFarmerLeft());
         runnable = new Runnable() {
             public void run() {
-                checkLives();
-                moveHorseFirstLine();
-                moveHorse();
-                if (numLives>0){
-                    checkPlace();
-                }
+                if (!isGameOver){
+                    moveHorse();
+                }else
+                    return;
                 handler.postDelayed(runnable, DELAY);
             }
         };
@@ -73,6 +71,9 @@ public class activity_hw_one extends AppCompatActivity {
         if (numLives == 0 && !isGameOver) {
             isGameOver = true;
             lose();
+        }
+        else {
+            checkPlace();
         }
     }
     private void lose() {
@@ -90,6 +91,7 @@ public class activity_hw_one extends AppCompatActivity {
 
     private void continueGame() {
         numLives=3;
+        updateLive();
         isGameOver=false;
         zoo_left.setEnabled(true);
         zoo_right.setEnabled(true);
@@ -124,28 +126,27 @@ public class activity_hw_one extends AppCompatActivity {
         }
     }
 
-    private void moveHorseFirstLine(){
-        Random random = new Random();
-        int num= random.nextInt(3) ;
-        for (int j = 0; j < zoo_animals[0].length; j++) {
-            zoo_animals[0][num].setVisibility(View.VISIBLE);
-        }
-    }
     private void moveHorse() {
-        for (int i = zoo_animals.length - 3; i >= 0; i--) { // Start from the second last row to the top
+        checkLives();
+        //updateLive();
+        Random random = new Random();
+        int num;
+        for (int i = zoo_animals.length - 3; i >= 0; i--) {
             for (int j = 0; j < zoo_animals[i].length; j++) {
                 if (i==zoo_animals.length-3){
                     zoo_animals[i+1][j].setVisibility(View.INVISIBLE);
                 }
                 if (zoo_animals[i][j].getVisibility() == View.VISIBLE) {
-                    zoo_animals[i][j].setVisibility(View.INVISIBLE);
                     zoo_animals[i + 1][j].setVisibility(View.VISIBLE);
+                    zoo_animals[i][j].setVisibility(View.INVISIBLE);
                 }
+            }
+            if (i==0){
+                num= random.nextInt(3) ;
+                zoo_animals[0][num].setVisibility(View.VISIBLE);
             }
         }
     }
-
-
 
 
     private void stop() {
@@ -154,7 +155,6 @@ public class activity_hw_one extends AppCompatActivity {
 
     private void start() {
         handler.postDelayed(runnable, DELAY);
-
     }
     private void updateLive() {
         int amountLive=zoo_live.length;
